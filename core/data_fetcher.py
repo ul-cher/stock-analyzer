@@ -55,15 +55,20 @@ class DataFetcher:
             data = self.stock.history(period=period)
             if data is None or data.empty:
                 return None
-            
-            # Cache the data
+
+            # Convert dates BEFORE caching
+            df_to_cache = data.reset_index()
+            df_to_cache['Date'] = df_to_cache['Date'].astype(str)
+
             cache_data = {
-                'historical': data.reset_index().to_dict('records'),
+                'historical': df_to_cache.to_dict('records'),
                 'period': period
             }
+
             self.db.save_stock_prices(self.ticker, cache_data)
-            
+
             return data
+
         except Exception as e:
             print(f"Error fetching historical data for {self.ticker}: {e}")
             return None
